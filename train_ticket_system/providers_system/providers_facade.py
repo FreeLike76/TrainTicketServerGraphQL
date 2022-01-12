@@ -10,11 +10,4 @@ class Facade:
     def get_all(self):
         res1 = self.p1.get_all()
         res2 = self.p2.get_all()
-
-        return res1.append(res2, ignore_index=True)
-
-    def get_by(self, args):
-        res1 = self.p1.get_by(args)
-        res2 = self.p2.get_by(args)
-
         return res1.append(res2, ignore_index=True)

@@ -1,4 +1,5 @@
 import time
+from datetime import date
 from train_ticket_system.db_system.db_worker import DBWorker
 from train_ticket_system.providers_system.providers_facade import Facade
 
@@ -16,23 +17,27 @@ class TrainTicketSystem:
         start = time.time()
         res_providers = self.providers.get_all()
         print("get_all, providers:", time.time() - start)
+
+        booked = self.db.get_provider_sold()
+        for index, row in booked.iterrows():
+            res_providers = res_providers[((res_providers["provider_id"] != row["provider_id"])
+                                           | (res_providers["id"] != row["id"]))]
+
         return db_res.append(res_providers, ignore_index=True)
 
-    def get_by(self, args):
-        start = time.time()
-        db_res = self.db.get_by(args)
-        print("get_by, db:", time.time() - start)
+    def set_status(self, id, status):
+        self.db.set_status(id, status)
 
-        start = time.time()
-        res_providers = self.providers.get_by(args)
-        print("get_by, providers:", time.time() - start)
-        return db_res.append(res_providers, ignore_index=True)
+    def delete_ticket(self, id):
+        self.db.delete_ticket(id)
 
-    def set_status(self, args):
-        self.db.set_status(args["id"], args["status"])
+    def insert_ticket(self, trip_id, seat_type, seat_num):
+        self.db.insert_ticket(trip_id, seat_type, seat_num)
 
-    def delete_ticket(self, args):
-        self.db.delete_ticket(args["id"])
-
-    def insert_ticket(self, args):
-        self.db.insert_ticket(args["trip_id"], args["seat_type"], args["seat_num"])
+    def book_ticket(self, id, provider_id, first_name, last_name, card):
+        _date = date.today()
+        _time = time.strftime("%H:%M:%S", time.localtime())
+        if provider_id == "0":
+            self.db.book_our_ticket(id, _date, _time, first_name, last_name, card)
+        else:
+            self.db.book_provider_ticket(id, provider_id, _date, _time, first_name, last_name, card)

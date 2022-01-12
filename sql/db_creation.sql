@@ -6,70 +6,84 @@ go
 
 --Create tables
 create table Companies(
-[Id] int not null primary key identity(0, 1),
-[Name] varchar(max) not null,
-[Phone] varchar(max) null
+[id] int not null primary key identity(0, 1),
+[name] varchar(max) not null,
+[phone] varchar(max) null
 )
 go
 create table Trains(
-[Id] int not null primary key identity(0, 1),
-[Owner] int not null foreign key references Companies(Id),
-[Type1Seats] int not null,
-[Type2Seats] int not null,
-[Type3Seats] int not null
+[id] int not null primary key identity(0, 1),
+[owner] int not null foreign key references Companies(id),
+[type_1_seats] int not null,
+[type_2_seats] int not null,
+[type_3_seats] int not null
 )
 go
 create table Cities(
-[Id] int not null primary key identity(0, 1),
-[Name] varchar(max) not null,
-[Longitude] int not null,
-[Latitude] int not null
+[id] int not null primary key identity(0, 1),
+[name] varchar(max) not null,
+[longitude] int not null,
+[latitude] int not null
 )
 go
 create table Trips(
-[Id] int not null primary key identity(0, 1),
-[Train] int not null foreign key references Trains(Id),
-[CityFrom] int not null foreign key references Cities(Id),
-[CityFromTime] time not null,
-[CityFromDate] date not null,
-[TravelTime] int not null,
-[CityTo] int not null foreign key references Cities(Id),
-[Type1Price] int not null,
-[Type2Price] int not null,
-[Type3Price] int not null
+[id] int not null primary key identity(0, 1),
+[train] int not null foreign key references Trains([id]),
+[from_city] int not null foreign key references Cities([id]),
+[to_city] int not null foreign key references Cities([id]),
+[time] time not null,
+[date] date not null,
+[travel_time] int not null,
+[seat_type_1_price] int not null,
+[seat_type_2_price] int not null,
+[seat_type_3_price] int not null
 )
 go
 create table Tickets(
-[Id] int not null primary key identity(0, 1),
-[Trip] int not null foreign key references Trips(Id),
-[Type] int not null,
-[SeatNum] int not null,
-[Status] int not null,
-[BookDate] date null,
-[BookTime] time null,
-[FirstName] varchar(max) null,
-[LastName] varchar(max) null,
-[CardNumber] varchar(max) null
+[id] int not null primary key identity(0, 1),
+[trip_id] int not null foreign key references Trips([id]),
+[seat_type] int not null,
+[seat_num] int not null,
+[status] int not null,
+[book_date] date null,
+[book_time] time null,
+[first_name] varchar(max) null,
+[last_name] varchar(max) null,
+[card] varchar(max) null
 )
 go
+
+create table SoldProviderTickets(
+[id] int not null,
+[trip_id] int not null,
+[book_date] date null,
+[book_time] time null,
+[first_name] varchar(max) not null,
+[last_name] varchar(max) not null,
+[card] varchar(max) not null,
+[provider_id] int not null
+)
+go
+
 create view [dbo].[TicketsInfo] as
 select
-Tickets.[Id] as 'id',
-Trips.[CityFromDate] as 'date',
-Trips.[CityFromTime] as 'time',
-cf.[Name] as 'from_city',
-ct.[Name] as 'to_city',
-Trips.[TravelTime] as 'travel_time',
-Tickets.[Type] as 'seat_type',
-Tickets.[SeatNum] as 'seat_num',
+Tickets.[id] as 'id',
+Trips.[date] as 'date',
+Trips.[time] as 'time',
+cf.[name] as 'from_city',
+ct.[name] as 'to_city',
+Trips.[travel_time] as 'travel_time',
+Tickets.[seat_type] as 'seat_type',
+Tickets.[seat_num] as 'seat_num',
 case
-	when Tickets.[Type] = 1 then Trips.Type1Price
-	when Tickets.[Type] = 2 then Trips.Type2Price
-	when Tickets.[Type] = 3 then Trips.Type3Price
+	when Tickets.[seat_type] = 1 then Trips.[seat_type_1_price]
+	when Tickets.[seat_type] = 2 then Trips.[seat_type_2_price]
+	when Tickets.[seat_type] = 3 then Trips.[seat_type_3_price]
 end as 'cost',
-Trips.[Id] as 'trip_id'
+Trips.[id] as 'trip_id'
 from Tickets
-left join Trips on Trips.[Id] = Tickets.[Trip]
-left join Cities as cf on cf.[Id] = Trips.[CityFrom]
-left join Cities as ct on ct.[Id] = Trips.[CityTo]
+left join Trips on Trips.[id] = Tickets.[trip_id]
+left join Cities as cf on cf.[id] = Trips.[from_city]
+left join Cities as ct on ct.[id] = Trips.[to_city]
+where Tickets.[status] = 0
 go
