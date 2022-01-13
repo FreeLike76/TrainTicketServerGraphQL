@@ -55,7 +55,6 @@ go
 
 create table SoldProviderTickets(
 [id] int not null,
-[trip_id] int not null,
 [book_date] date null,
 [book_time] time null,
 [first_name] varchar(max) not null,
